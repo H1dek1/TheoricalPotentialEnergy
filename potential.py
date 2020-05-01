@@ -4,14 +4,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 
-def potentialEnergy(alpha, gamma, x, direction):
-    f_x = direction
+def potentialEnergy(alpha, gamma, x, f_ext):
 
-    energy = -2 * alpha * f_x * np.cos(x)
-    energy += 3 - np.cos(2*x)
-    energy -= 2 * gamma * (f_x - (3*np.sqrt(3)*np.sin(x - np.pi/3) + 2*np.cos(x))/alpha)*(3*np.cos(x + np.pi/3) + np.cos(x))
+    energy = 3 - 13*gamma/alpha
+    energy += (gamma/(2*alpha) - 1)*np.cos(2*x)
+    energy += (15*np.sqrt(3)*gamma/(2*alpha))*np.sin(2*x)
+    energy += f_ext*(-(2*alpha+5*gamma)*np.cos(x) + 3*np.sqrt(3)*gamma*np.sin(x))
 
     return energy
+
+def grad(alpha, gamma, x, f_ext):
+    grad = (2 - gamma/alpha) * np.sin(2*x)
+    grad += (15*np.sqrt(3)*gamma/alpha) * np.cos(2*x)
+    grad += f_ext * ((2*alpha + 5*gamma)*np.sin(x) + 3*np.sqrt(3)*gamma*np.cos(x))
+
+    return grad
+
+def update(val):
+    s_alpha = sli_alpha.val
+    s_gamma = sli_gamma.val
+    l1.set_ydata( potentialEnergy(s_alpha, s_gamma, x, 1) )
+    l2.set_ydata( potentialEnergy(s_alpha, s_gamma, x, -1) )
+    fig.canvas.draw_idle()
+
+def reset(event):
+    sli_alpha.reset()
+    sli_gamma.reset()
+
 
 
 fig, ax = plt.subplots(figsize=(10, 10))
@@ -41,24 +60,13 @@ ax_alpha = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
 ax_gamma = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor=axcolor)
 
 sli_alpha = Slider(ax_alpha, 'Alpha', 10, 100, valinit=alpha, valstep=d_alpha)
-sli_gamma = Slider(ax_gamma, 'Gamma', 1, 10, valinit=gamma, valstep=d_gamma)
-
-def update(val):
-    s_alpha = sli_alpha.val
-    s_gamma = sli_gamma.val
-    l1.set_ydata( potentialEnergy(s_alpha, s_gamma, x, 1) )
-    l2.set_ydata( potentialEnergy(s_alpha, s_gamma, x, -1) )
-    fig.canvas.draw_idle()
+sli_gamma = Slider(ax_gamma, 'Gamma', 1, 40, valinit=gamma, valstep=d_gamma)
 
 sli_alpha.on_changed(update)
 sli_gamma.on_changed(update)
 
 resetax = plt.axes([0.8, 0.0, 0.1, 0.04])
 button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
-
-def reset(event):
-    sli_alpha.reset()
-    sli_gamma.reset()
 
 button.on_clicked(reset)
 
