@@ -24,7 +24,8 @@ def update(val):
     s_alpha = sli_alpha.val
     s_gamma = sli_gamma.val
     l1.set_ydata( potentialEnergy(s_alpha, s_gamma, x, 1) )
-    l2.set_ydata( potentialEnergy(s_alpha, s_gamma, x, -1) )
+    l2.set_ydata( potentialEnergy(s_alpha, s_gamma, x, 0) )
+    l3.set_ydata( potentialEnergy(s_alpha, s_gamma, x, -1) )
     fig.canvas.draw_idle()
 
 def reset(event):
@@ -49,10 +50,12 @@ gamma = 1
 d_alpha = 10
 d_gamma = 1
 y1 = potentialEnergy(alpha, gamma, x, 1)
-y2 = potentialEnergy(alpha, gamma, x, -1)
+y2 = potentialEnergy(alpha, gamma, x, 0)
+y3 = potentialEnergy(alpha, gamma, x, -1)
 
 l1, = plt.plot(x, y1, lw=2, label='$B_{ext}=(0, 1, 0)$')
-l2, = plt.plot(x, y2, lw=2, label='$B_{ext}=(0, -1, 0)$')
+l2, = plt.plot(x, y3, lw=2, label='$B_{ext}=(0, 0, 0)$')
+l3, = plt.plot(x, y2, lw=2, label='$B_{ext}=(0, -1, 0)$')
 plt.legend(fontsize=15)
 
 axcolor = 'gold'
