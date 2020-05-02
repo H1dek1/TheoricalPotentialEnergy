@@ -39,6 +39,16 @@ def NewtonMethod(x0, alpha, gamma, f_ext):
 
     return x
 
+def GradientDescent(x0, alpha, gamma, f_ext):
+    x = x0
+    while(True):
+        delta = 0.1*calcgrad(alpha, gamma, x, 1)
+        if abs(delta) < 1.0e-4:
+            break
+        x -= delta
+
+    return x
+
 
 fig = plt.figure(figsize=(8, 8))
 #ax = fig.add_subplot(211)
