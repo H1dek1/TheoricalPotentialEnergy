@@ -59,7 +59,7 @@ ax2.set_title("$\\theta(\\alpha, \\gamma)$", fontsize=15)
 ax2.set_xlabel("$\\alpha$")
 ax2.set_ylabel("$\\theta$")
 ax2.set_yticks([-np.pi/5, -np.pi/10, 0])
-ax2.set_yticklabels(["$-\\pi/5$", "$-\\pi/10$", "0"])
+ax2.set_yticklabels(["$-\\frac{\\pi}{5}$", "$-\\pi/10$", "0"])
 ax2.grid()
 
 
@@ -99,7 +99,4 @@ ax3.legend(key2)
 
 #print("alpha_arr is {}".format(alpha_arr[0]))
 #print("pole_x is {}".format(pole_x[0]))
-
-print(alpha_arr.shape)
-print(pole_x.shape)
 plt.show()
