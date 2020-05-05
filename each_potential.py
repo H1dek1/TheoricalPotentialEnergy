@@ -8,21 +8,8 @@ import matplotlib.animation as animation
 from potential_energy import potentialEnergy, potentialEnergySepa
 from potential_energy import gradEnergy, gradEnergySepa, GradientDescentSepa
 
-#def potentialEnergy(x, a=100, c=10, f_ext=1):
-#
-#    energy = 3 - 13*c/a
-#    energy += (c/(2*a) - 1)*np.cos(2*x)
-#    energy += (15*np.sqrt(3)*c/(2*a))*np.sin(2*x)
-#    energy += f_ext*(-(2*a+5*c)*np.cos(x) + 3*np.sqrt(3)*c*np.sin(x))
-#
-#    return energy
-#
-#def calcgrad(x, a=100, c=10, f_ext=1):
-#    grad = (2 - c/a) * np.sin(2*x)
-#    grad += (15*np.sqrt(3)*c/a) * np.cos(2*x)
-#    grad += f_ext * ((2*a + 5*c)*np.sin(x) + 3*np.sqrt(3)*c*np.cos(x))
-#
-#    return grad
+
+
 #-----------------------------------------------main function
 ## matplitlib setting
 fig, ax = plt.subplots(figsize=(10, 8))
