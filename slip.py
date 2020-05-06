@@ -4,62 +4,110 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 import matplotlib.animation as animation
+import matplotlib.patches as patches
 
-alpha = 100
 
-class Particle():
+alpha = 1
+beta = 0.1
+d_time = 1e-2
+num_cycle = 4
+max_iter = num_cycle / d_time
+time = 0
+omega = 2*np.pi
+a_l = 0.3
+
+class PermanentParticle:
     def __init__(self, angle):
-        self.angle = angle
+        self.theta = angle
+        self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
+        self.torque = 0
+
+    def angle(self):
+        return self.theta
 
     def calcTorque(self, magnetic_field):
-        moment = np.array([-np.sin(self.angle), np.cos(self.angle), 0])
-        cross = alpha*np.cross(moment, magnetic_field)
+        self.torque = alpha * np.cross(self.moment, magnetic_field)
+        return self.torque
 
-        return cross
+    def update(self, dt=d_time):
+        self.d_theta = (beta / (a_l**3)) * self.torque[2]
+        self.theta += self.d_theta * dt
+        self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
 
-    def updateAngle(self, torque):
-        omega = torque/(0.3**3)
-        self.angle += omega[2]
+    def potential(self, ext_moment, val):
+        val_arr = np.array([-np.sin(val), np.cos(val), np.zeros(val.size)])
+        energy_arr = -2 * alpha * np.dot(val_arr.T, ext_moment)
+        energy = -2 * alpha * np.dot(self.moment, ext_moment)
+        return energy_arr, energy
 
 
 
-def potentialEnergy(x, f):
-    return -alpha * f * np.cos(x)
+class ExternalMagneticField:
+    def __init__(self, angle=0):
+        self.psi = angle
+        self.moment = np.array([-np.sin(self.psi), np.cos(self.psi), 0])
+
+    def update(self, dt=d_time):
+        #rot_matrix = np.array([
+        #    [np.cos(omega*dt), -np.sin(omega*dt), 0],
+        #    [np.sin(omega*dt), np.cos(omega*dt), 0],
+        #    [0, 0, 1]
+        #    ])
+        self.psi += omega*dt
+
+        #self.moment = np.dot(rot_matrix, self.moment)
+        self.moment = np.array([-np.sin(self.psi), np.cos(self.psi), 0])
 
 
 
-fig, ax = plt.subplots(figsize=(10, 8))
-ax.set_xlabel('$\\theta$', fontsize=18)
-ax.set_ylabel('$U_{all}$', fontsize=18)
+#--------------------------
+fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+axes[0].set_xlabel('$x$', fontsize=15)
+axes[0].set_ylabel('$y$', fontsize=15)
+#axes[0].grid()
+axes[0].set_xlim(-3, 3)
+axes[0].set_ylim(-1, 1)
+axes[0].set_aspect('equal')
+particle = patches.Circle(xy=(0, 0), radius=a_l, fill=False)
+magnetic_field = patches.Circle(xy=(-2, -0.5), radius=0.5, fill=False)
 
-ax.set_xlim(-2*np.pi, 2*np.pi)
-#ax.set_ylim()
-ax.grid()
+axes[0].add_patch(particle)
+axes[0].add_patch(magnetic_field)
 
-ax.set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
-ax.set_xticklabels([
-    '$-2\\pi$',
-    '$-\\pi$',
-    '$0$',
-    '$\\pi$',
-    '$2\\pi$',
-    ], fontsize=15)
-ax.tick_params(axis='y', labelsize=15)
 
-theta = np.linspace(-2*np.pi, 2*np.pi)
-t = np.linspace(0, 2*np.pi, 100)
-f_ext_arr = np.cos(t)
-particle = Particle(np.pi/2)
+
+axes[1].set_title('Potential Energy')
+axes[1].set_xlabel('$\\theta$', fontsize=15)
+axes[1].set_ylabel('$Potential Energy$', fontsize=15)
+axes[1].set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
+
 ims = []
 
-for f_ext in f_ext_arr:
-    torque = particle.calcTorque(np.array([0, f_ext, 0]))
-    print(torque)
-    particle.updateAngle(torque)
 
-    energy = potentialEnergy(theta, f_ext)
-    im = ax.plot(theta, energy, c='c')
-    ims.append(im)
+theta = np.linspace(-2*np.pi, 2*np.pi, 400)
+b_ext = ExternalMagneticField(0)
+perm = PermanentParticle(0)
 
-ani = animation.ArtistAnimation(fig, ims, interval=100)
-plt.show()
+for i in range(int(max_iter)):
+    if (i+1) % 100 == 0: print("plotting {}/{}".format(i+1, max_iter))
+
+    pos_x = np.array([-2, 0])
+    pos_y = np.array([-0.5, 0])
+    vec_x = np.array( [0.8*(b_ext.moment[0]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[0]/np.linalg.norm(b_ext.moment))] )
+    vec_y = np.array( [0.8*(b_ext.moment[1]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[1]/np.linalg.norm(b_ext.moment))] )
+
+    im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color=('black', 'black'), angles='xy', scale_units='xy', scale=1, pivot='mid')
+    potential, pole_y = perm.potential(b_ext.moment, theta)
+    im2 = axes[1].plot(theta, potential, c='c')
+    im2 += axes[1].plot(perm.angle(), pole_y, marker='.', markersize=20, color='r')
+    im3 = axes[1].axvline(perm.angle(), color='r')
+    ims.append([im1]+im2+[im3])
+
+    b_ext.update()
+    perm.calcTorque( b_ext.moment )
+    perm.update()
+
+ani = animation.ArtistAnimation(fig, ims, interval=(d_time*1e+3*3))
+print("Saving animation ...")
+ani.save('test2.mp4', writer='ffmpeg')
+#plt.show()
