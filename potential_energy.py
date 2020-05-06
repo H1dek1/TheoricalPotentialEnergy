@@ -26,7 +26,7 @@ def potentialEnergySepa(x, a=100, c=10, f_ext=1):
     return l_energy
 
 def extEnergy(x, a=100, f_ext=1):
-    return -2 * a * f_ext * np.cos(x)
+    return -4 * a * f_ext * np.cos(x)
 
 def dipoleEnergy(x):
     return 3 - np.cos(2*x)

@@ -8,7 +8,7 @@ import matplotlib.patches as patches
 
 
 alpha = 1
-beta = 1
+beta = 0.05
 d_time = 1e-2
 num_cycle = 2
 max_iter = num_cycle / d_time
@@ -22,8 +22,11 @@ class PermanentParticle:
         self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
         self.torque = 0
 
+    def angle(self):
+        return np.arctan2(self.moment[1], self.moment[0]) - np.pi/2
+
     def calcTorque(self, magnetic_field):
-        self.torque = np.cross(self.moment, magnetic_field)
+        self.torque = alpha * np.cross(self.moment, magnetic_field)
         return self.torque
 
     def update(self, dt=d_time):
@@ -31,12 +34,18 @@ class PermanentParticle:
         self.theta += self.d_theta * dt
         self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
 
+    def potential(self, ext_moment, val):
+        val_arr = np.array([-np.sin(val), np.cos(val), np.zeros(val.size)])
+        energy_arr = -2 * alpha * np.dot(val_arr.T, ext_moment)
+        energy = -2 * alpha * np.dot(self.moment, ext_moment)
+        return energy_arr, energy
+
 
 
 class ExternalMagneticField:
     def __init__(self, angle=0):
         self.psi = angle
-        self.moment = alpha * np.array([-np.sin(self.psi), np.cos(self.psi), 0])
+        self.moment = np.array([-np.sin(self.psi), np.cos(self.psi), 0])
 
     def update(self, dt=d_time):
         rot_matrix = np.array([
@@ -63,19 +72,32 @@ magnetic_field = patches.Circle(xy=(-2, -0.5), radius=0.5, fill=False)
 axes[0].add_patch(particle)
 axes[0].add_patch(magnetic_field)
 
+
+
+axes[1].set_title('Potential Energy')
+
 ims = []
 
 
+theta = np.linspace(-2*np.pi, 2*np.pi, 400)
 b_ext = ExternalMagneticField(0)
-perm = PermanentParticle(np.pi/2)
+perm = PermanentParticle(0)
 
 for i in range(int(max_iter)):
-    #perm.calcTorque( b_ext.moment )
-    #perm.update()
+    pos_x = np.array((-2, 0))
+    pos_y = np.array((-0.5, 0))
+    vec_x = np.array((b_ext.moment[0], perm.moment[0]))
+    vec_y = np.array((b_ext.moment[1], perm.moment[1]))
 
-    im = axes[0].quiver(-2, -0.5, b_ext.moment[0], b_ext.moment[1], color='blue', angles='xy', scale_units='xy', scale=1, pivot='mid')
-    ims.append([im])
+    im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color=('black', 'black'), angles='xy', scale_units='xy', scale=1.5, pivot='mid')
+    potential, pole_y = perm.potential(b_ext.moment, theta)
+    im2 = axes[1].plot(theta, potential, c='c')
+    im2 += axes[1].plot(perm.angle(), pole_y, marker='.', markersize=20, color='r')
+    ims.append([im1]+im2)
+    #ims.append(im2)
     b_ext.update()
+    perm.calcTorque( b_ext.moment )
+    perm.update()
 
 ani = animation.ArtistAnimation(fig, ims, interval=(d_time*1e+3*3))
 ani.save('test2.mp4', writer='ffmpeg')
