@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
@@ -8,7 +9,7 @@ import matplotlib.patches as patches
 
 
 alpha = 1.0e+2
-beta = 1.0e-2
+beta = 5.0e-3
 gamma = 1.0e+1
 
 d_time = 1e-2
@@ -17,33 +18,6 @@ max_iter = num_cycle / d_time
 time = 0
 omega = 2*np.pi
 a_l = 0.3
-
-class PermanentParticle:
-    def __init__(self, angle, pos):
-        self.pos = pos
-        self.theta = angle
-        self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
-        self.torque = 0
-
-    def angle(self):
-        return self.theta
-
-    def calcTorque(self, magnetic_field):
-        self.torque = alpha * np.cross(self.moment, magnetic_field)
-        return self.torque
-
-    def update(self, dt=d_time):
-        self.d_theta = (beta / (a_l**3)) * self.torque[2]
-        self.theta += self.d_theta * dt
-        self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
-
-    def potential(self, ext_moment, val):
-        val_arr = np.array([-np.sin(val), np.cos(val), np.zeros(val.size)])
-        energy_arr = -2 * alpha * np.dot(val_arr.T, ext_moment)
-        energy = -2 * alpha * np.dot(self.moment, ext_moment)
-        return energy_arr, energy
-
-
 
 class ExternalMagneticField:
     def __init__(self, angle=0):
@@ -65,9 +39,9 @@ class Swimmer:
         self.torque = 0
 
     def calcParamagneticMoment(self, ext_field):
-        magnetic_field_para = ext_field
-        #magnetic_field_para = ext_field \
-        #        - (1/alpha)*(3*np.sqrt(3)*np.sin(self.theta - np.pi/3) + 2*np.cos(self.theta))*np.array([0, 1, 0])
+        #magnetic_field_para = ext_field
+        magnetic_field_para = ext_field \
+                - (1/alpha)*(3*np.sqrt(3)*np.sin(self.theta - np.pi/3) + 2*np.cos(self.theta))*np.array([0, 1, 0])
 
         self.paramagnetic_moment = gamma * magnetic_field_para
 
@@ -113,6 +87,35 @@ class Swimmer:
         else:
             return np.zeros(3)
 
+    def potentialEnergy(self, ext_field, theta_arr):
+        #local_energy_arr = self.extEnergy(theta_arr, ext_field[1]) \
+        #        + self.dipoleEnergy(theta_arr) \
+        #        + self.paraEnergy(theta_arr, ext_field[1])
+        #local_energy = self.extEnergy(self.theta, ext_field[1]) \
+        #        + self.dipoleEnergy(self.theta) \
+        #        + self.paraEnergy(self.theta, ext_field[1])
+        local_energy_arr = (gamma/(2*alpha) - 1)*np.cos(2*theta_arr)
+        local_energy_arr += 3 - 13*gamma/alpha
+        local_energy_arr += (15*np.sqrt(3)*gamma/(2*alpha))*np.sin(2*theta_arr)
+        local_energy_arr += ext_field[1]*(-(2*alpha+5*gamma)*np.cos(theta_arr) + 3*np.sqrt(3)*gamma*np.sin(theta_arr))
+        local_energy = (gamma/(2*alpha) - 1)*np.cos(2*self.theta)
+        local_energy += 3 - 13*gamma/alpha
+        local_energy += (15*np.sqrt(3)*gamma/(2*alpha))*np.sin(2*self.theta)
+        local_energy += ext_field[1]*(-(2*alpha+5*gamma)*np.cos(self.theta) + 3*np.sqrt(3)*gamma*np.sin(self.theta))
+
+        return local_energy_arr, local_energy
+
+    def extEnergy(self, x, ext_moment):
+        return -4 * alpha * ext_moment * np.cos(x)
+
+    def dipoleEnergy(self, x):
+        return 3 - np.cos(2*x)
+
+    def paraEnergy(self, x, ext_moment):
+        field_on_perm = -(3*np.sqrt(3)*np.sin(x - np.pi/3) + 2*np.cos(x))/alpha
+        return -2 * gamma * (ext_moment + field_on_perm) * (3*np.cos(x + np.pi/3) + np.cos(x))
+        #return -2 * gamma * (ext_moment) * (3*np.cos(x + np.pi/3) + np.cos(x))
+
 
 #--------------------------
 fig, axes = plt.subplots(2, 1, figsize=(10, 8))
@@ -125,19 +128,27 @@ axes[0].set_aspect('equal')
 permanent1 = patches.Circle(xy=(-0.5, 0), radius=a_l, fill=False)
 permanent2 = patches.Circle(xy=(0.5, 0), radius=a_l, fill=False)
 paramagnetic = patches.Circle(xy=(0, 0.866), radius=a_l, fill=False)
-magnetic_field = patches.Circle(xy=(-2, -0.5), radius=0.2, fill=False)
+magnetic_field = patches.Circle(xy=(-2, -0.5), radius=0.4, fill=False)
 
 axes[0].add_patch(permanent1)
 axes[0].add_patch(permanent2)
 axes[0].add_patch(paramagnetic)
 axes[0].add_patch(magnetic_field)
 
+
+axes[1].set_title('Potential Energy')
+axes[1].set_xlabel('$\\theta$', fontsize=15)
+axes[1].set_ylabel('$Potential Energy$', fontsize=15)
+axes[1].set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
+theta_arr = np.linspace(-2*np.pi, 2*np.pi, 400)
+
 ims = []
 
 swimmer = Swimmer(np.array([0.0, 0.0, 0.0]), 0)
 b_ext = ExternalMagneticField(0)
-for i in range(int(max_iter)):
-    if (i+1) % 100 == 0: print("Drawing {}/{}".format(i+1, max_iter))
+
+for i in tqdm(range(int(max_iter))):
+    #if (i+1) % 100 == 0: print("Drawing {}/{}".format(i+1, max_iter))
     swimmer.calcParamagneticMoment(b_ext.moment)
     pos_x = np.array([
         -2, 
@@ -151,22 +162,31 @@ for i in range(int(max_iter)):
         swimmer.posParticle(3)[1]])
 
     vec_x = np.array( [
-        0.3*b_ext.moment[0], 
+        0.6*b_ext.moment[0], 
         0.8*2*a_l*(swimmer.momentParticle(1)[0]/np.linalg.norm(swimmer.momentParticle(1))),
         0.8*2*a_l*(swimmer.momentParticle(2)[0]/np.linalg.norm(swimmer.momentParticle(2))),
-        0.8*2*a_l*(swimmer.momentParticle(3)[0]/np.linalg.norm(swimmer.momentParticle(3)))] )
+        0.8*2*a_l*(swimmer.momentParticle(3)[0]/10)] )
 
     vec_y = np.array( [
-        0.3*b_ext.moment[1], 
+        0.6*b_ext.moment[1], 
         0.8*2*a_l*(swimmer.momentParticle(1)[1]/np.linalg.norm(swimmer.momentParticle(1))),
         0.8*2*a_l*(swimmer.momentParticle(2)[1]/np.linalg.norm(swimmer.momentParticle(2))),
-        0.8*2*a_l*(swimmer.momentParticle(3)[1]/np.linalg.norm(swimmer.momentParticle(3)))] )
-    im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color='black', angles='xy', scale_units='xy', scale=1, pivot='mid')
-    ims.append([im1])
+        0.8*2*a_l*(swimmer.momentParticle(3)[1]/10)] )
+    im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color='black', angles='xy', scale_units='xy', scale=1, pivot='mid', width=5.0e-3)
+
+    potential, pole_y = swimmer.potentialEnergy(b_ext.moment, theta_arr)
+    im2 = axes[1].plot(theta_arr, potential, c='c')
+    im2 += axes[1].plot(swimmer.theta, pole_y, marker='.', markersize=20, color='r')
+    im3 = axes[1].axvline(swimmer.theta, color='r')
+    ims.append([im1]+im2+[im3])
 
     swimmer.calcTorque(b_ext.moment)
     swimmer.updateAngle(d_time)
-    b_ext.update(d_time)
+
+    if i < 1/d_time:
+        pass
+    else:
+        b_ext.update(d_time)
 #
 #
 #
