@@ -48,7 +48,7 @@ def gradEnergySepa(x, a=100, c=10, f_ext=1):
     return l_grad
 
 def gradExtEnergy(x, a=100, f_ext=1):
-    return 2 * a * f_ext * np.sin(x)
+    return 4 * a * f_ext * np.sin(x)
 
 def gradDipoleEnergy(x):
     return 2 * np.sin(2*x)
