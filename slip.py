@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
@@ -35,10 +36,27 @@ class PermanentParticle:
         self.moment = np.array([-np.sin(self.theta), np.cos(self.theta), 0])
 
     def potential(self, ext_moment, val):
-        val_arr = np.array([-np.sin(val), np.cos(val), np.zeros(val.size)])
+        val_arr = np.array([-np.sin(val), np.cos(val), 0])
         energy_arr = -2 * alpha * np.dot(val_arr.T, ext_moment)
         energy = -2 * alpha * np.dot(self.moment, ext_moment)
         return energy_arr, energy
+
+    def gradPotential(self, x, ext_moment):
+        return 2 * np.sin(x - np.arctan2(ext_moment[1], ext_moment[0]))
+
+    def gradientDescent(self, x0, ext_moment):
+        x = x0
+        counter = 0
+        while(True):
+            rate = 0.001 / (1 + counter)
+            delta = 0.001*self.gradPotential(x, ext_moment)
+            if abs(delta) < 1.0e-5:
+                break
+
+            x -= delta
+            counter += 1
+
+        return x
 
 
 
@@ -85,29 +103,34 @@ ims = []
 
 
 theta = np.linspace(-2*np.pi, 2*np.pi, 400)
-b_ext = ExternalMagneticField(0)
+b_ext = ExternalMagneticField(np.pi/2)
 perm = PermanentParticle(0)
 
-for i in range(int(max_iter)):
-    if (i+1) % 100 == 0: print("plotting {}/{}".format(i+1, max_iter))
-
+for i in tqdm(range(int(max_iter))):
     pos_x = np.array([-2, 0])
     pos_y = np.array([-0.5, 0])
     vec_x = np.array( [0.8*(b_ext.moment[0]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[0]/np.linalg.norm(b_ext.moment))] )
     vec_y = np.array( [0.8*(b_ext.moment[1]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[1]/np.linalg.norm(b_ext.moment))] )
 
     im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color=('black', 'black'), angles='xy', scale_units='xy', scale=1, pivot='mid')
-    potential, pole_y = perm.potential(b_ext.moment, theta)
+    potential, theta_0 = perm.potential(b_ext.moment, theta)
     im2 = axes[1].plot(theta, potential, c='c')
-    im2 += axes[1].plot(perm.angle(), pole_y, marker='.', markersize=20, color='r')
+    im2 += axes[1].plot(perm.angle(), theta_0, marker='.', markersize=20, color='r')
     im3 = axes[1].axvline(perm.angle(), color='r')
-    ims.append([im1]+im2+[im3])
 
-    b_ext.update()
+    pole_x = perm.gradientDescent(0, b_ext.moment)
+    _, pole_y = perm.potential(b_ext.moment, pole_x)
+    im4 = axes[1].plot(perm.angle(), theta_0, marker='.', markersize=20, color='b')
+
+    ims.append([im1]+im2+[im3]+im4)
+
+    #b_ext.update()
     perm.calcTorque( b_ext.moment )
     perm.update()
 
+print("extreme value :{}".format(perm.angle()))
+print("pole value :{}".format(pole_x))
 ani = animation.ArtistAnimation(fig, ims, interval=(d_time*1e+3*3))
 print("Saving animation ...")
-ani.save('test2.mp4', writer='ffmpeg')
+#ani.save('slipping.mp4', writer='ffmpeg')
 #plt.show()
