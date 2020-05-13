@@ -38,9 +38,18 @@ class Swimmer:
 
         self.nx = np.array([1, 0, 0])
         self.npara = np.array([np.cos(np.pi/3), np.sin(np.pi/3), 0])
+        self.npara2 = np.array([-np.cos(np.pi/3), np.sin(np.pi/3), 0])
 
     def calcParamagneticMoment(self, ext_field):
-        self.para_moment = gamma * ext_field
+        the_other_moment = np.array([
+            -self.permanent_moment[0],
+            self.permanent_moment[1],
+            self.permanent_moment[2]
+            ])
+        b_p = 3*np.dot(self.permanent_moment, -self.npara)*(-self.npara) - self.permanent_moment
+        b_p += 3*np.dot(the_other_moment, -self.npara2)*(-self.npara2) - the_other_moment
+
+        self.para_moment = gamma * (ext_field + b_p/alpha)
 
     def calcTorque(self, ext_field):
         b_all = alpha * ext_field
@@ -76,6 +85,13 @@ class Swimmer:
             the_other_moment,
             self.para_moment/gamma
             ]).T
+
+    #def potentialEnergy(self, x, ext_field):
+    #    self.potential = self.extEnergy(self.theta, ext_field) \
+    #        + self.dipoleEnergy(self.theta) \
+    #        + self.paraEnergy(self.theta, ext_field)
+
+    #    return self.potential
 
 
 
