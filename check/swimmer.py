@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
-FLAG = 1 # 0->なし, 1->あり
+FLAG = 0 # 0->なし, 1->あり
 
 
 d_time = 1.0e-4
@@ -66,7 +66,7 @@ class Swimmer:
             self.permanent_moment[1],
             self.permanent_moment[2]
             ])
-        b_all += 3*np.dot(the_other_moment, self.nx)*self.nx - the_other_moment
+        #b_all += 3*np.dot(the_other_moment, self.nx)*self.nx - the_other_moment
         b_all += 3*np.dot(self.para_moment, self.npara)*self.npara - self.para_moment
 
         self.torque = np.cross(self.permanent_moment, b_all)
@@ -101,13 +101,13 @@ class Swimmer:
         if type(x_arr) == np.ndarray:
             x_potential = []
             for x in x_arr:
-                x_potential.append(self.extEnergy(x, ext_field) \
-                    + self.dipoleEnergy(x))
-                #x_potential.append(self.extEnergy(x, ext_field))
+                #x_potential.append(self.extEnergy(x, ext_field) \
+                #    + self.dipoleEnergy(x))
+                x_potential.append(self.extEnergy(x, ext_field))
         else:
-            x_potential = self.extEnergy(x_arr, ext_field) \
-                    + self.dipoleEnergy(x_arr)
-            #x_potential = self.extEnergy(x_arr, ext_field)
+            #x_potential = self.extEnergy(x_arr, ext_field) \
+            #        + self.dipoleEnergy(x_arr)
+            x_potential = self.extEnergy(x_arr, ext_field)
 
         return theta_potential, x_potential
 
@@ -247,7 +247,7 @@ for i in tqdm(range(int(max_iter))):
         #subplot 2, 1
         potential, potential_arr = swimmer.potentialEnergy(theta_arr, b_ext)
         im2 = axes[1].plot(theta_arr, potential_arr, c='blue')
-        #im2 += axes[1].plot(theta_arr, 100*swimmer.dipoleEnergy(theta_arr), c='orange')
+        im2 += axes[1].plot(theta_arr, 100*swimmer.dipoleEnergy(theta_arr), c='orange')
         im2 += axes[1].plot(swimmer.theta, potential, marker='.', markersize=15, color='r')
         pole_x = swimmer.gradientDescent(pole_x, b_ext)
         _, pole_potential = swimmer.potentialEnergy(pole_x, b_ext)
