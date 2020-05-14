@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
+FLAG = 1 # 0->なし, 1->あり
+
+
 d_time = 1.0e-4
 omega = 2*np.pi
-num_cycle = 3
+num_cycle = 2
 max_iter = num_cycle / d_time
 out_time = 1.0e-2
 out_iter = int(out_time / d_time)
@@ -49,7 +52,12 @@ class Swimmer:
         b_p = 3*np.dot(self.permanent_moment, -self.npara)*(-self.npara) - self.permanent_moment
         b_p += 3*np.dot(the_other_moment, -self.npara2)*(-self.npara2) - the_other_moment
 
-        self.para_moment = gamma * (ext_field + b_p/alpha)
+        if FLAG == 0:
+            self.para_moment = gamma * ext_field
+        elif FLAG == 1:
+            self.para_moment = gamma * (ext_field + b_p/alpha)
+
+
 
     def calcTorque(self, ext_field):
         b_all = alpha * ext_field
@@ -86,12 +94,95 @@ class Swimmer:
             self.para_moment/gamma
             ]).T
 
-    #def potentialEnergy(self, x, ext_field):
-    #    self.potential = self.extEnergy(self.theta, ext_field) \
-    #        + self.dipoleEnergy(self.theta) \
-    #        + self.paraEnergy(self.theta, ext_field)
+    def potentialEnergy(self, x_arr, ext_field):
+        theta_potential = self.extEnergy(self.theta, ext_field) \
+            + self.dipoleEnergy(self.theta)
 
-    #    return self.potential
+        if type(x_arr) == np.ndarray:
+            x_potential = []
+            for x in x_arr:
+                x_potential.append(self.extEnergy(x, ext_field) \
+                    + self.dipoleEnergy(x))
+                #x_potential.append(self.extEnergy(x, ext_field))
+        else:
+            x_potential = self.extEnergy(x_arr, ext_field) \
+                    + self.dipoleEnergy(x_arr)
+            #x_potential = self.extEnergy(x_arr, ext_field)
+
+        return theta_potential, x_potential
+
+    def extEnergy(self, theta, ext_field):
+        tmp_moment = np.array([
+            -np.sin(theta),
+            np.cos(theta),
+            0
+            ])
+        field = ext_field.copy()
+
+        if FLAG == 0:
+            field += (gamma/alpha) * ext_field[1] * np.array([3*np.sqrt(3)/4, 5/4, 0])
+        elif FLAG == 1:
+            field += (gamma/alpha) * (ext_field[1] - (3*np.sqrt(3)*np.sin(theta - np.pi/3) + 2*np.cos(theta))/alpha) * np.array([3*np.sqrt(3)/4, 5/4, 0])
+
+        ext_energy = -4 * alpha * np.dot(tmp_moment, field)
+        return ext_energy
+
+    def dipoleEnergy(self, theta):
+        dipole_energy = 3 - np.cos(2*theta)
+        return dipole_energy
+
+    def gradientDescent(self, x0, ext_field):
+        x = x0
+        while True:
+            delta = self.gradEnergy(x, ext_field)
+            if abs(delta) < 1.0e-5: break
+            x -= 1.0e-4 * delta
+
+        return x
+
+    def gradEnergy(self, theta, ext_field):
+        if FLAG == 0:
+            grad = self.gradExtEnergy(theta, ext_field) + self.gradDipoleEnergy(theta)
+        elif FLAG == 1:
+            grad = self.gradExtEnergy2(theta, ext_field) + self.gradDipoleEnergy(theta)
+
+        return grad
+
+    #超常磁性に永久磁石の磁場を含まない場合
+    def gradExtEnergy(self, theta, ext_field):
+        tmp_vector = np.array([
+            -np.cos(theta),
+            -np.sin(theta),
+            0
+            ])
+        field = ext_field.copy()
+        field += (gamma/alpha) * ext_field[1] * np.array([3*np.sqrt(3)/4, 5/4, 0])
+        grad_ext_energy = -4 * alpha * np.dot(tmp_vector, field)
+        return grad_ext_energy
+
+    def gradExtEnergy2(self, theta, ext_field):
+        tmp_moment = np.array([
+            -np.sin(theta),
+            np.cos(theta),
+            0
+            ])
+        d_tmp_moment = np.array([
+            -np.cos(theta),
+            -np.sin(theta),
+            0
+            ])
+        field = ext_field.copy()
+        field += (gamma/alpha) * (ext_field[1] - (3*np.sqrt(3)*np.sin(theta - np.pi/3) + 2*np.cos(theta))/alpha) * np.array([3*np.sqrt(3)/4, 5/4, 0])
+
+        d_field = -(gamma/(alpha**2)) * (3*np.sqrt(3)*np.cos(theta - np.pi/3) - 2*np.sin(theta)) * np.array([3*np.sqrt(3)/4, 5/4, 0])
+
+        grad_ext_energy = -4*alpha * (np.dot(tmp_moment, d_field) + np.dot(d_tmp_moment, field))
+        return grad_ext_energy
+
+    def gradDipoleEnergy(self, theta):
+        grad_dipole_energy = 2 * np.sin(2*theta)
+        return grad_dipole_energy
+
 
 
 
@@ -109,6 +200,7 @@ for i in range(int(sleep_iter)):
     #magnetic_field.update()
 
 
+
 fig, axes = plt.subplots(2, 1, figsize=(10, 8))
 axes[0].set_xlabel('$x/l$', fontsize=15)
 axes[0].set_ylabel('$y/l$', fontsize=15)
@@ -121,24 +213,58 @@ particle3 = patches.Circle(xy=(0, np.sqrt(3)/2), radius=a_l, fill=False)
 axes[0].add_patch(particle1)
 axes[0].add_patch(particle2)
 axes[0].add_patch(particle3)
+axes[1].set_xlabel('$\\theta$', fontsize=15)
+axes[1].set_ylabel('Potential Energy', fontsize=15)
+#axes[1].set_xlim(-0.3, 0)
+#axes[1].set_ylim(-460, -440)
 ims = []
 
-for i in tqdm(range(int(max_iter))):
-    swimmer.calcParamagneticMoment(magnetic_field.moment)
-    swimmer.calcTorque(magnetic_field.moment)
-    #####
 
+if FLAG == 0:
+    theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
+elif FLAG == 1:
+    theta_arr = np.linspace(-num_cycle*2*np.pi, 2*np.pi, 100*(1+int(num_cycle)))
+
+pole_x = 0
+
+pot_arr = []
+
+for i in tqdm(range(int(max_iter))):
+    #mutableな外部地場のモーメントを変更しないため
+    b_ext = magnetic_field.moment.copy()
+    b_ext.setflags(write=False)
+
+    swimmer.calcParamagneticMoment(b_ext)
+    swimmer.calcTorque(b_ext)
+    #####
     if i%out_iter == 0:
+        #subplot 1, 1
         positions = swimmer.particlePosition()
         moments = 0.5*swimmer.particleMoment()
-        im1 = axes[0].quiver(positions[0], positions[1], moments[0], moments[1], color='black', angles='xy', scale_units='xy', scale=1, pivot='mid', width=5.0e-3)
-        ims.append([im1])
+        im1 = axes[0].quiver(positions[0], positions[1], moments[0], moments[1], \
+                color='black', angles='xy', scale_units='xy', scale=1, pivot='mid', width=5.0e-3)
+
+        #subplot 2, 1
+        potential, potential_arr = swimmer.potentialEnergy(theta_arr, b_ext)
+        im2 = axes[1].plot(theta_arr, potential_arr, c='blue')
+        #im2 += axes[1].plot(theta_arr, 100*swimmer.dipoleEnergy(theta_arr), c='orange')
+        im2 += axes[1].plot(swimmer.theta, potential, marker='.', markersize=15, color='r')
+        pole_x = swimmer.gradientDescent(pole_x, b_ext)
+        _, pole_potential = swimmer.potentialEnergy(pole_x, b_ext)
+        im2 += axes[1].plot(pole_x, pole_potential, marker='.', markersize=10, color='g')
+        ims.append([im1]+im2)
+        pot_arr = potential_arr
 
     #####
     swimmer.update()
     magnetic_field.update()
 
+index = np.where(pot_arr == np.min(pot_arr))
+real_pole = theta_arr[index]
+print("min index: {}".format(real_pole))
+
 print("final particle angle: {}".format(swimmer.theta))
+print("pole angle          : {}".format(pole_x))
 ani = animation.ArtistAnimation(fig, ims, interval=(out_time*1.0e+3*5))
 print('Saving animation ...')
 ani.save('sample.mp4', writer='ffmpeg')
