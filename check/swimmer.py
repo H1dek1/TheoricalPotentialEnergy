@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+
 import numpy as np
 from tqdm import tqdm
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
-FLAG = 0 # 0->なし, 1->あり
+FLAG = 1 # 0->なし, 1->あり
 
 
 d_time = 1.0e-4
@@ -16,9 +19,9 @@ out_time = 1.0e-2
 out_iter = int(out_time / d_time)
 sleep_iter = int(1 / d_time)
 
-alpha = 1.0e+2
-beta = 1.0e-2
-gamma = 1.0e+1
+alpha = 1.0e+1
+beta = 6.0e-4
+gamma = 1.0e+3
 a_l = 0.3
 
 class ExternalMagneticField:
@@ -66,7 +69,7 @@ class Swimmer:
             self.permanent_moment[1],
             self.permanent_moment[2]
             ])
-        #b_all += 3*np.dot(the_other_moment, self.nx)*self.nx - the_other_moment
+        b_all += 3*np.dot(the_other_moment, self.nx)*self.nx - the_other_moment
         b_all += 3*np.dot(self.para_moment, self.npara)*self.npara - self.para_moment
 
         self.torque = np.cross(self.permanent_moment, b_all)
@@ -101,13 +104,13 @@ class Swimmer:
         if type(x_arr) == np.ndarray:
             x_potential = []
             for x in x_arr:
-                #x_potential.append(self.extEnergy(x, ext_field) \
-                #    + self.dipoleEnergy(x))
-                x_potential.append(self.extEnergy(x, ext_field))
+                x_potential.append(self.extEnergy(x, ext_field) \
+                    + self.dipoleEnergy(x))
+                #x_potential.append(self.extEnergy(x, ext_field))
         else:
-            #x_potential = self.extEnergy(x_arr, ext_field) \
-            #        + self.dipoleEnergy(x_arr)
-            x_potential = self.extEnergy(x_arr, ext_field)
+            x_potential = self.extEnergy(x_arr, ext_field) \
+                    + self.dipoleEnergy(x_arr)
+            #x_potential = self.extEnergy(x_arr, ext_field)
 
         return theta_potential, x_potential
 
@@ -185,9 +188,29 @@ class Swimmer:
 
 
 
+def matplotlibSetting(fig, axes):
+    axes[0].set_xlabel('$x/l$', fontsize=15)
+    axes[0].set_ylabel('$y/l$', fontsize=15)
+    axes[0].set_xlim(-3, 3)
+    axes[0].set_ylim(-1, 1.5)
+    axes[0].set_aspect('equal')
+    particle1 = patches.Circle(xy=(-0.5, 0), radius=a_l, fill=False)
+    particle2 = patches.Circle(xy=(0.5, 0), radius=a_l, fill=False)
+    particle3 = patches.Circle(xy=(0, np.sqrt(3)/2), radius=a_l, fill=False)
+    axes[0].add_patch(particle1)
+    axes[0].add_patch(particle2)
+    axes[0].add_patch(particle3)
+    axes[1].set_xlabel('$\\theta$', fontsize=15)
+    axes[1].set_ylabel('Potential Energy', fontsize=15)
+    #axes[1].set_xlim(-0.3, 0)
+    #axes[1].set_ylim(-460, -440)
 
 
 #-------------------------------------------
+fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+matplotlibSetting(fig, axes)
+ims = []
+
 init_position = np.array([0, 0, 0])
 
 swimmer = Swimmer(init_position, 0)
@@ -198,26 +221,6 @@ for i in range(int(sleep_iter)):
     swimmer.calcTorque(magnetic_field.moment)
     swimmer.update()
     #magnetic_field.update()
-
-
-
-fig, axes = plt.subplots(2, 1, figsize=(10, 8))
-axes[0].set_xlabel('$x/l$', fontsize=15)
-axes[0].set_ylabel('$y/l$', fontsize=15)
-axes[0].set_xlim(-3, 3)
-axes[0].set_ylim(-1, 1.5)
-axes[0].set_aspect('equal')
-particle1 = patches.Circle(xy=(-0.5, 0), radius=a_l, fill=False)
-particle2 = patches.Circle(xy=(0.5, 0), radius=a_l, fill=False)
-particle3 = patches.Circle(xy=(0, np.sqrt(3)/2), radius=a_l, fill=False)
-axes[0].add_patch(particle1)
-axes[0].add_patch(particle2)
-axes[0].add_patch(particle3)
-axes[1].set_xlabel('$\\theta$', fontsize=15)
-axes[1].set_ylabel('Potential Energy', fontsize=15)
-#axes[1].set_xlim(-0.3, 0)
-#axes[1].set_ylim(-460, -440)
-ims = []
 
 
 if FLAG == 0:
@@ -247,7 +250,9 @@ for i in tqdm(range(int(max_iter))):
         #subplot 2, 1
         potential, potential_arr = swimmer.potentialEnergy(theta_arr, b_ext)
         im2 = axes[1].plot(theta_arr, potential_arr, c='blue')
-        im2 += axes[1].plot(theta_arr, 100*swimmer.dipoleEnergy(theta_arr), c='orange')
+
+        #im2 += axes[1].plot(theta_arr, 100*swimmer.dipoleEnergy(theta_arr), c='orange')
+
         im2 += axes[1].plot(swimmer.theta, potential, marker='.', markersize=15, color='r')
         pole_x = swimmer.gradientDescent(pole_x, b_ext)
         _, pole_potential = swimmer.potentialEnergy(pole_x, b_ext)
@@ -259,12 +264,13 @@ for i in tqdm(range(int(max_iter))):
     swimmer.update()
     magnetic_field.update()
 
-index = np.where(pot_arr == np.min(pot_arr))
-real_pole = theta_arr[index]
-print("min index: {}".format(real_pole))
+#index = np.where(pot_arr == np.min(pot_arr))
+#real_pole = theta_arr[index]
+#print("min index: {}".format(real_pole))
 
 print("final particle angle: {}".format(swimmer.theta))
 print("pole angle          : {}".format(pole_x))
 ani = animation.ArtistAnimation(fig, ims, interval=(out_time*1.0e+3*5))
 print('Saving animation ...')
 ani.save('sample.mp4', writer='ffmpeg')
+print('Success!')
