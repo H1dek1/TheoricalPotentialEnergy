@@ -57,28 +57,24 @@ ims = []
 
 for iter in tqdm(range(max_iter)):
     potential_ext = u_ext(theta_arr, external_magnetic_field)
-    #im = ax.plot(theta_arr, potential_ext, color='C0', linestyle='dashed', label='direct external field')
+    im = ax.plot(theta_arr, potential_ext, color='C0', linestyle='dashed', label='direct external field')
     
     potential_dd = u_dd(theta_arr)
-    #im += ax.plot(theta_arr, potential_dd, color='C1', linestyle='dashed', label='direct dipole field')
+    im += ax.plot(theta_arr, potential_dd, color='C1', linestyle='dashed', label='direct dipole field')
     
     potential_ext_p = u_ext_p(theta_arr, external_magnetic_field)
-    #im += ax.plot(theta_arr, potential_ext_p, color='C2', linestyle='dashed', label='external field through para')
+    im += ax.plot(theta_arr, potential_ext_p, color='C2', linestyle='dashed', label='external field through para')
     
     potential_dd_p = u_dd_p(theta_arr)
-    #im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
+    im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
     
     #potential_non_time = potential_dd + potential_dd_p
-    potential_non_time = potential_dd
-    im = ax.plot(theta_arr, potential_non_time, color='C5', linestyle='dashed', label='time independent energy')
+    #im = ax.plot(theta_arr, potential_non_time, color='C5', linestyle='dashed', label='time independent energy')
+    #
+    #potential_time = potential_ext + potential_ext_p
+    #im += ax.plot(theta_arr, potential_time, color='C6', linestyle='dashed', label='time dependent energy')
     
-    potential_time = potential_ext + potential_ext_p
-    im += ax.plot(theta_arr, potential_time, color='C6', linestyle='dashed', label='time dependent energy')
-    
-    #potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
-    potential_all = potential_ext + potential_dd + potential_ext_p
-    #potential_all = potential_ext + potential_ext_p + potential_dd_p
-    #potential_all = potential_ext + potential_ext_p
+    potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
     im += ax.plot(theta_arr, potential_all, color='C4', label='sum of all energy')
     if flag_legend:
         ax.legend()
