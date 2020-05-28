@@ -45,6 +45,18 @@ def u_dd_p(theta):
     moment = np.array([-np.sin(theta), np.cos(theta)]).T
     arr = np.array([3*np.sqrt(3), 5])
     return gamma / alpha * (3*np.sqrt(3)*np.sin(theta - np.pi/3) + 2*np.cos(theta)) * np.dot(moment, arr)
+
+def characteristic_pole():
+    x_psi = alpha + 2*gamma
+    y_psi = 9 * np.sqrt(3) * gamma
+    psi = np.arctan(y_psi/x_psi)
+    return -psi/2
+
+def external_field_pole():
+    x_phi = (4*alpha + 5*gamma)
+    y_phi = 3 * np.sqrt(3) * gamma
+    phi =  np.arctan(y_phi/x_phi)
+    return -phi
     
 
 theta_arr = np.linspace(-np.pi, np.pi, 100)
@@ -57,30 +69,32 @@ ims = []
 
 for iter in tqdm(range(max_iter)):
     potential_ext = u_ext(theta_arr, external_magnetic_field)
-    im = ax.plot(theta_arr, potential_ext, color='C0', linestyle='dashed', label='direct external field')
+    #im = ax.plot(theta_arr, potential_ext, color='C0', linestyle='dashed', label='direct external field')
     
     potential_dd = u_dd(theta_arr)
-    im += ax.plot(theta_arr, potential_dd, color='C1', linestyle='dashed', label='direct dipole field')
+    #im += ax.plot(theta_arr, potential_dd, color='C1', linestyle='dashed', label='direct dipole field')
     
     potential_ext_p = u_ext_p(theta_arr, external_magnetic_field)
-    im += ax.plot(theta_arr, potential_ext_p, color='C2', linestyle='dashed', label='external field through para')
+    #im += ax.plot(theta_arr, potential_ext_p, color='C2', linestyle='dashed', label='external field through para')
     
     potential_dd_p = u_dd_p(theta_arr)
-    im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
+    #im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
     
-    #potential_non_time = potential_dd + potential_dd_p
-    #im = ax.plot(theta_arr, potential_non_time, color='C5', linestyle='dashed', label='time independent energy')
+    potential_non_time = potential_dd + potential_dd_p
+    im = ax.plot(theta_arr, potential_non_time, color='C5', linestyle='dashed', label='time independent energy')
     #
-    #potential_time = potential_ext + potential_ext_p
-    #im += ax.plot(theta_arr, potential_time, color='C6', linestyle='dashed', label='time dependent energy')
+    potential_time = potential_ext + potential_ext_p
+    im += ax.plot(theta_arr, potential_time, color='C6', linestyle='dashed', label='time dependent energy')
     
     potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
     im += ax.plot(theta_arr, potential_all, color='C4', label='sum of all energy')
+    im_line1 = ax.axvline(external_field_pole(), color='red')
+    im_line2 = ax.axvline(characteristic_pole(), color='blue')
     if flag_legend:
         ax.legend()
         flag_legend = False
     
-    ims.append(im)
+    ims.append(im+[im_line1]+[im_line2])
 
     time += d_time
     external_magnetic_field = np.cos(omega*time)
