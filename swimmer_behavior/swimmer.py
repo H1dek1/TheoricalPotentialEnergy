@@ -2,7 +2,7 @@ import numpy as np
 
 class Swimmer:
     alpha = 2.0e+1
-    beta = 6.0e-2
+    beta = 3.0e-2
     gamma = 1.0e+2
     a_l = 0.3
     def __init__(self, position, init_angle, flag):
@@ -26,9 +26,9 @@ class Swimmer:
         b_p = 3*np.dot(self.permanent_moment, -self.npara)*(-self.npara) - self.permanent_moment
         b_p += 3*np.dot(the_other_moment, -self.npara2)*(-self.npara2) - the_other_moment
 
-        if self.flag == 0:
+        if self.flag == False:
             self.para_moment = Swimmer.gamma * ext_field
-        elif self.flag == 1:
+        elif self.flag == True:
             self.para_moment = Swimmer.gamma * (ext_field + b_p/Swimmer.alpha)
 
     def calcTorque(self, ext_field):

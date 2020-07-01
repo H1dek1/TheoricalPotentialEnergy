@@ -12,7 +12,7 @@ from external_magnetic_field import ExternalMagneticField
 from swimmer import Swimmer
 
 def main():
-    FLAG = 1 # 0->なし, 1->あり
+    FLAG = True # 0->なし, 1->あり
 
     d_time = 1.0e-4
     omega = 2*np.pi
@@ -33,10 +33,10 @@ def main():
 
     print('Aligning particles ...')
     
-    for i in range(int(sleep_iter)):
-        swimmer.calcParamagneticMoment(magnetic_field.moment)
-        swimmer.calcTorque(magnetic_field.moment)
-        swimmer.update(d_time)
+    #for i in range(int(sleep_iter)):
+    #    swimmer.calcParamagneticMoment(magnetic_field.moment)
+    #    swimmer.calcTorque(magnetic_field.moment)
+    #    swimmer.update(d_time)
         #magnetic_field.update(d_time)
     
     
@@ -48,6 +48,7 @@ def main():
     pole_x = 0
     print('Start Iteration')
     for i in tqdm(range(int(max_iter))):
+    #for i in range(1):
         #mutableな外部地場のモーメントを変更しないため
         b_ext = magnetic_field.moment.copy()
         b_ext.setflags(write=False)
