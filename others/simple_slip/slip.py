@@ -15,7 +15,7 @@ beta = 0.1
 d_time = 1e-3
 num_cycle = 2
 max_iter = int(num_cycle / d_time)
-out_time = 1.0e-2
+out_time = 2.0e-2
 out_iter = int(out_time / d_time)
 time = 0
 omega = 2*np.pi
@@ -84,7 +84,7 @@ axes[0].set_xlim(-3, 3)
 axes[0].set_ylim(-1, 1)
 axes[0].set_aspect('equal')
 axes[0].text(-2.8, -0.9, '$B_{ext}$', fontsize=20)
-particle = patches.Circle(xy=(0, 0), radius=a_l, fill=False)
+particle = patches.Circle(xy=(0, 0), radius=a_l, fc='gray', ec='gray', fill=True, zorder=1)
 axes[0].add_patch(particle)
 #magnetic_field = patches.Circle(xy=(-2, -0.5), radius=0.5, fill=False)
 #axes[0].add_patch(magnetic_field)
@@ -94,13 +94,15 @@ axes[0].add_patch(particle)
 axes[1].set_title('Potential Energy')
 axes[1].set_xlabel('$\\theta$', fontsize=15)
 axes[1].set_ylabel('$Potential Energy$', fontsize=15)
-axes[1].set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
+#axes[1].set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
+axes[1].set_xticks([-2*np.pi, -np.pi, 0, np.pi, 2*np.pi])
+axes[1].set_xticklabels(['$-2\\pi$', '$-\\pi$', 0, '$\\pi$', '$2\\pi$'])
 
 ims = []
 
 
 theta = np.linspace(-2*np.pi, 2*np.pi, 400)
-b_ext = ExternalMagneticField(np.pi/2)
+b_ext = ExternalMagneticField(0)
 perm = PermanentParticle(0)
 
 for i in tqdm(range(max_iter)):
@@ -110,11 +112,11 @@ for i in tqdm(range(max_iter)):
         vec_x = np.array( [0.8*(b_ext.moment[0]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[0]/np.linalg.norm(b_ext.moment))] )
         vec_y = np.array( [0.8*(b_ext.moment[1]/np.linalg.norm(b_ext.moment)), 0.8*2*a_l*(perm.moment[1]/np.linalg.norm(b_ext.moment))] )
 
-        im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color=('black', 'black'), angles='xy', scale_units='xy', scale=1, pivot='mid')
+        im1 = axes[0].quiver(pos_x, pos_y, vec_x, vec_y, color=('black', 'black'), angles='xy', scale_units='xy', scale=1, pivot='mid', zorder=2)
         potential, theta_0 = perm.potential(b_ext.moment, theta)
         im2 = axes[1].plot(theta, potential, color='C0')
-        im2 += axes[1].plot(perm.angle(), theta_0, marker='.', markersize=10, color='C1')
-        im3 = axes[1].axvline(perm.angle(), color='C2')
+        im2 += axes[1].plot(perm.angle(), theta_0, marker='.', markersize=10, color='red')
+        im3 = axes[1].axvline(perm.angle(), color='red')
 
         pole_x = perm.gradientDescent(0, b_ext.moment)
         _, pole_y = perm.potential(b_ext.moment, pole_x)
