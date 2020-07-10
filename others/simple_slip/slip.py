@@ -11,7 +11,7 @@ import matplotlib.patches as patches
 
 
 alpha = 1
-beta = 0.1
+beta = 0.3
 d_time = 1e-3
 num_cycle = 2
 max_iter = int(num_cycle / d_time)
@@ -95,13 +95,13 @@ axes[1].set_title('Potential Energy')
 axes[1].set_xlabel('$\\theta$', fontsize=15)
 axes[1].set_ylabel('$Potential Energy$', fontsize=15)
 #axes[1].set_xticks(np.linspace(-2*np.pi, 2*np.pi, 5))
-axes[1].set_xticks([-2*np.pi, -np.pi, 0, np.pi, 2*np.pi])
-axes[1].set_xticklabels(['$-2\\pi$', '$-\\pi$', 0, '$\\pi$', '$2\\pi$'])
+axes[1].set_xticks([0, np.pi, 2*np.pi, 3*np.pi, 4*np.pi])
+axes[1].set_xticklabels([0, '$\\pi$', '$2\\pi$', '$3\\pi$', '$4\\pi$'])
 
 ims = []
 
 
-theta = np.linspace(-2*np.pi, 2*np.pi, 400)
+theta = np.linspace(0, 4*np.pi, 400)
 b_ext = ExternalMagneticField(0)
 perm = PermanentParticle(0)
 
@@ -133,5 +133,5 @@ print("extreme value :{}".format(perm.angle()))
 print("pole value :{}".format(pole_x))
 ani = animation.ArtistAnimation(fig, ims, interval=(out_time*1e+3*3))
 print("Saving animation ...")
-ani.save('slipping.mp4', writer='ffmpeg')
+ani.save('rotating_field.mp4', writer='ffmpeg')
 #plt.show()
