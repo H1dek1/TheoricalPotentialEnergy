@@ -16,7 +16,7 @@ def main():
 
     d_time = 1.0e-4
     omega = 2*np.pi
-    num_cycle = 2
+    num_cycle = 1
     max_iter = num_cycle / d_time
     out_time = 1.0e-2
     out_iter = int(out_time / d_time)
@@ -38,7 +38,7 @@ def main():
         swimmer.calcTorque(magnetic_field.moment)
         swimmer.update(d_time)
         #magnetic_field.update(d_time)
-    
+    print(swimmer.theta/np.pi*180)
     
     if FLAG == 0:
         theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
@@ -47,14 +47,18 @@ def main():
     
     pole_x = 0
     print('Start Iteration')
-    for i in tqdm(range(int(max_iter))):
+    #for i in tqdm(range(int(max_iter))):
+    for i in range(1):
         #mutableな外部地場のモーメントを変更しないため
         b_ext = magnetic_field.moment.copy()
         b_ext.setflags(write=False)
     
         swimmer.calcParamagneticMoment(b_ext)
+        print(swimmer.para_moment)
         swimmer.calcTorque(b_ext)
+        print(swimmer.torque)
         #####
+        """
         if i%out_iter == 0:
             #subplot (1, 1)
             positions = swimmer.particlePosition()
@@ -75,16 +79,19 @@ def main():
 
             ims.append([im1_1]+[im1_2]+im2)
     
+        """
         #####
         swimmer.update(d_time)
         magnetic_field.update(d_time)
     
     #print("final particle angle: {}".format(swimmer.theta))
     #print("pole angle          : {}".format(pole_x))
+    """
     ani = animation.ArtistAnimation(fig, ims, interval=(out_time*1.0e+3*5))
     print('Saving animation ...')
     ani.save('sample.mp4', writer='ffmpeg')
     print('Success!')
+    """
 
 
 def matplotlibSetting(fig, axes):
