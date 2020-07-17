@@ -12,18 +12,18 @@ from external_magnetic_field import ExternalMagneticField
 from swimmer import Swimmer
 
 def main():
-    FLAG = True # True=NewModel, False=OldModel
+    FLAG = False # True=NewModel, False=OldModel
 
     d_time = 1.0e-4
     omega = 2*np.pi
-    num_cycle = 1
+    num_cycle = 2
     max_iter = num_cycle / d_time
     out_time = 1.0e-2
     out_iter = int(out_time / d_time)
     sleep_iter = int(1 / d_time)
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 8))
-    matplotlibSetting(fig, axes)
+    matplotlibSetting(fig, axes, FLAG)
     ims = []
     
     init_position = np.array([0, 0, 0])
@@ -39,12 +39,7 @@ def main():
         swimmer.update(d_time)
         #magnetic_field.update(d_time)
     
-<<<<<<< HEAD
-    
     if FLAG == False:
-=======
-    if FLAG == 0:
->>>>>>> 4cf27f6db8ed0177d7ba375cce9bb886925cc98d
         theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
     elif FLAG == True:
         theta_arr = np.linspace(-num_cycle*2*np.pi - np.pi/2, 2*np.pi, 100*(1+int(num_cycle)))
@@ -93,7 +88,7 @@ def main():
     print('Success!')
 
 
-def matplotlibSetting(fig, axes):
+def matplotlibSetting(fig, axes, flag):
     axes[0].set_xlabel('$x/l$', fontsize=15)
     axes[0].set_ylabel('$y/l$', fontsize=15)
     axes[0].set_xlim(-3, 3)
@@ -108,10 +103,12 @@ def matplotlibSetting(fig, axes):
     axes[0].add_patch(particle3)
     axes[1].set_xlabel('$\\theta$', fontsize=15)
     axes[1].set_ylabel('Potential Energy', fontsize=15)
-    #axes[1].set_xticks(np.arange(-2*np.pi, 5*np.pi, np.pi/2))
-    #axes[1].set_xticklabels(['$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$', '$5\pi/2$', '$3\pi$', '$7\pi/2$', '$4\pi$', '$9\pi/2$'])
-    axes[1].set_xticks(np.arange(-9*np.pi/2, 5*np.pi/2, np.pi/2))
-    axes[1].set_xticklabels(['$-9\pi/2$', '$-4\pi$', '$-7\pi/2$', '$-3\pi$', '$-5\pi/2$', '$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$'])
+    if flag == False:
+        axes[1].set_xticks(np.arange(-2*np.pi, 5*np.pi, np.pi/2))
+        axes[1].set_xticklabels(['$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$', '$5\pi/2$', '$3\pi$', '$7\pi/2$', '$4\pi$', '$9\pi/2$'])
+    elif flag == True:
+        axes[1].set_xticks(np.arange(-9*np.pi/2, 5*np.pi/2, np.pi/2))
+        axes[1].set_xticklabels(['$-9\pi/2$', '$-4\pi$', '$-7\pi/2$', '$-3\pi$', '$-5\pi/2$', '$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$'])
     #axes[1].set_xlim(-0.3, 0)
     #axes[1].set_ylim(-460, -440)
 
