@@ -16,7 +16,7 @@ def main():
 
     d_time = 1.0e-4
     omega = 2*np.pi
-    num_cycle = 2
+    num_cycle = 4
     max_iter = num_cycle / d_time
     out_time = 1.0e-2
     out_iter = int(out_time / d_time)
@@ -40,7 +40,8 @@ def main():
         #magnetic_field.update(d_time)
     
     if FLAG == False:
-        theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
+        #theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
+        theta_arr = np.linspace(-2*np.pi, (num_cycle-2)*2*np.pi, 100*(1+int(num_cycle-1)))
     elif FLAG == True:
         theta_arr = np.linspace(-num_cycle*2*np.pi - np.pi/2, 2*np.pi, 100*(1+int(num_cycle)))
     

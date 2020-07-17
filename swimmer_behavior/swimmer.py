@@ -2,7 +2,7 @@ import numpy as np
 
 class Swimmer:
     alpha = 1.0e+2
-    beta = 1.0e-2
+    beta = 9.0e-3
     gamma = 1.0e+1
     a_l = 0.3
     def __init__(self, position, init_angle, flag):
