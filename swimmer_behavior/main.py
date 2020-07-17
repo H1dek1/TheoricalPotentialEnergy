@@ -16,7 +16,7 @@ def main():
 
     d_time = 1.0e-4
     omega = 2*np.pi
-    num_cycle = 2
+    num_cycle = 1
     max_iter = num_cycle / d_time
     out_time = 1.0e-2
     out_iter = int(out_time / d_time)
@@ -33,14 +33,18 @@ def main():
 
     print('Aligning particles ...')
     
-    #for i in range(int(sleep_iter)):
-    #    swimmer.calcParamagneticMoment(magnetic_field.moment)
-    #    swimmer.calcTorque(magnetic_field.moment)
-    #    swimmer.update(d_time)
+    for i in range(int(sleep_iter)):
+        swimmer.calcParamagneticMoment(magnetic_field.moment)
+        swimmer.calcTorque(magnetic_field.moment)
+        swimmer.update(d_time)
         #magnetic_field.update(d_time)
     
+<<<<<<< HEAD
     
     if FLAG == False:
+=======
+    if FLAG == 0:
+>>>>>>> 4cf27f6db8ed0177d7ba375cce9bb886925cc98d
         theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
     elif FLAG == True:
         theta_arr = np.linspace(-num_cycle*2*np.pi - np.pi/2, 2*np.pi, 100*(1+int(num_cycle)))

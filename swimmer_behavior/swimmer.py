@@ -1,9 +1,9 @@
 import numpy as np
 
 class Swimmer:
-    alpha = 2.0e+1
-    beta = 3.0e-2
-    gamma = 1.0e+2
+    alpha = 1.0e+2
+    beta = 1.0e-1
+    gamma = 1.0e+1
     a_l = 0.3
     def __init__(self, position, init_angle, flag):
         self.flag = flag
@@ -38,8 +38,12 @@ class Swimmer:
             self.permanent_moment[1],
             self.permanent_moment[2]
             ])
+        print("in calcTorque()")
+        print(b_all)
         b_all += 3*np.dot(the_other_moment, self.nx)*self.nx - the_other_moment
+        print(b_all)
         b_all += 3*np.dot(self.para_moment, self.npara)*self.npara - self.para_moment
+        print(b_all)
 
         self.torque = np.cross(self.permanent_moment, b_all)
 

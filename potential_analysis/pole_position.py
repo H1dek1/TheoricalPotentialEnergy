@@ -21,7 +21,7 @@ def external_field_pole(alpha, gamma):
 #gamma_arr = np.linspace(0.01, 300, 300)
 
 alpha_arr = np.arange(1.0, 100, 1.0)
-gamma_arr = np.arange(1.0, 100, 1.0)
+gamma_arr = np.arange(1.0, 1000, 1.0)
 
 alpha_arr, gamma_arr = np.meshgrid(alpha_arr, gamma_arr)
 diff = external_field_pole(alpha_arr, gamma_arr) - characteristic_pole(alpha_arr, gamma_arr)
