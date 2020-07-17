@@ -12,7 +12,7 @@ from external_magnetic_field import ExternalMagneticField
 from swimmer import Swimmer
 
 def main():
-    FLAG = True # 0->なし, 1->あり
+    FLAG = True # True=NewModel, False=OldModel
 
     d_time = 1.0e-4
     omega = 2*np.pi
@@ -40,10 +40,10 @@ def main():
         #magnetic_field.update(d_time)
     
     
-    if FLAG == 0:
+    if FLAG == False:
         theta_arr = np.linspace(-2*np.pi, num_cycle*2*np.pi, 100*(1+int(num_cycle)))
-    elif FLAG == 1:
-        theta_arr = np.linspace(-num_cycle*2*np.pi, 2*np.pi, 100*(1+int(num_cycle)))
+    elif FLAG == True:
+        theta_arr = np.linspace(-num_cycle*2*np.pi - np.pi/2, 2*np.pi, 100*(1+int(num_cycle)))
     
     pole_x = 0
     print('Start Iteration')
@@ -61,20 +61,21 @@ def main():
             positions = swimmer.particlePosition()
             moments = 0.5*swimmer.particleMoment()
             im1_1 = axes[0].quiver(positions[0], positions[1], moments[0], moments[1], \
-                    color='black', angles='xy', scale_units='xy', scale=1, pivot='mid', width=5.0e-3)
+                    color='black', angles='xy', scale_units='xy', scale=1, pivot='mid', width=5.0e-3, zorder=2)
             im1_2 = axes[0].quiver(-2.0, -0.5, b_ext[0], b_ext[1], \
-                    color='black', angles='xy', scale_units='xy', scale=2, width=5.0e-3)
+                    color='black', angles='xy', scale_units='xy', scale=2, width=5.0e-3, zorder=2)
     
             #subplot (2, 1)
             potential, potential_arr = swimmer.potentialEnergy(theta_arr, b_ext)
-            im2 = axes[1].plot(theta_arr, potential_arr, c='blue')
+            im2_1 = axes[1].plot(theta_arr, potential_arr, c='C0')
     
-            im2 += axes[1].plot(swimmer.theta, potential, marker='.', markersize=15, color='r')
+            im2_1 += axes[1].plot(swimmer.theta, potential, marker='.', markersize=10, color='r')
             pole_x = swimmer.gradientDescent(pole_x, b_ext)
             _, pole_potential = swimmer.potentialEnergy(pole_x, b_ext)
-            im2 += axes[1].plot(pole_x, pole_potential, marker='.', markersize=10, color='g')
+            #im2_1 += axes[1].plot(pole_x, pole_potential, marker='.', markersize=10, color='g')
+            im2_2 = axes[1].axvline(swimmer.theta, color='r')
 
-            ims.append([im1_1]+[im1_2]+im2)
+            ims.append([im1_1]+[im1_2]+im2_1+[im2_2])
     
         #####
         swimmer.update(d_time)
@@ -94,14 +95,19 @@ def matplotlibSetting(fig, axes):
     axes[0].set_xlim(-3, 3)
     axes[0].set_ylim(-1, 1.5)
     axes[0].set_aspect('equal')
-    particle1 = patches.Circle(xy=(-0.5, 0), radius=Swimmer.a_l, fill=False)
-    particle2 = patches.Circle(xy=(0.5, 0), radius=Swimmer.a_l, fill=False)
-    particle3 = patches.Circle(xy=(0, np.sqrt(3)/2), radius=Swimmer.a_l, fill=False)
+    axes[0].text(-2.8, -0.9, '$B_{ext}$', fontsize=20)
+    particle1 = patches.Circle(xy=(-0.5, 0), radius=Swimmer.a_l, fc='gray', ec='gray', fill=True, zorder=1)
+    particle2 = patches.Circle(xy=(0.5, 0), radius=Swimmer.a_l, fc='gray', ec='gray', fill=True, zorder=1)
+    particle3 = patches.Circle(xy=(0, np.sqrt(3)/2), radius=Swimmer.a_l, fc='orange', ec='orange', fill=True, zorder=1)
     axes[0].add_patch(particle1)
     axes[0].add_patch(particle2)
     axes[0].add_patch(particle3)
     axes[1].set_xlabel('$\\theta$', fontsize=15)
     axes[1].set_ylabel('Potential Energy', fontsize=15)
+    #axes[1].set_xticks(np.arange(-2*np.pi, 5*np.pi, np.pi/2))
+    #axes[1].set_xticklabels(['$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$', '$5\pi/2$', '$3\pi$', '$7\pi/2$', '$4\pi$', '$9\pi/2$'])
+    axes[1].set_xticks(np.arange(-9*np.pi/2, 5*np.pi/2, np.pi/2))
+    axes[1].set_xticklabels(['$-9\pi/2$', '$-4\pi$', '$-7\pi/2$', '$-3\pi$', '$-5\pi/2$', '$-2\pi$', '$-3\pi/2$', '$-\pi$', '$-\pi/2$', '$0$', '$\pi/2$', '$\pi$', '$3\pi/2$', '$2\pi$'])
     #axes[1].set_xlim(-0.3, 0)
     #axes[1].set_ylim(-460, -440)
 
