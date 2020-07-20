@@ -84,13 +84,13 @@ for iter in tqdm(range(max_iter)):
     potential_dd_p = u_dd_p(theta_arr)
     #im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
     
-    potential_non_time = potential_dd + potential_dd_p
+    potential_non_time = potential_dd# + potential_dd_p
     im = ax.plot(theta_arr, potential_non_time, color='C1', linestyle='dashed', label='time independent energy')
     #
     potential_time = potential_ext + potential_ext_p
     im += ax.plot(theta_arr, potential_time, color='C2', linestyle='dashed', label='time dependent energy')
     
-    potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
+    potential_all = potential_ext + potential_dd + potential_ext_p# + potential_dd_p
     im += ax.plot(theta_arr, potential_all, color='C0', label='all energy')
     #im_line1 = ax.axvline(external_field_pole(), color='red')
     #im_line2 = ax.axvline(characteristic_pole(), color='blue')
