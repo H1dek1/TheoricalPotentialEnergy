@@ -15,9 +15,9 @@ out_time = 1.0e-2
 out_iter = int(out_time / d_time)
 sleep_iter = int(1 / d_time)
 
-alpha = 2.0e+2
+alpha = 1.0e+0
 beta = 6.0e-4
-gamma = 5.0e+10
+gamma = 1.0e-1
 a_l = 0.3
 
 def all_energy(theta, ext_field):
@@ -64,6 +64,10 @@ time = 0
 external_magnetic_field = np.cos(time)
 fig, ax = plt.subplots(1, 1, figsize=(10, 8))
 ax.set_title('alpha={}, gamma={}'.format(alpha, gamma))
+ax.set_xticks(np.arange(-np.pi, np.pi+np.pi/2, np.pi/2))
+ax.set_xticklabels(['$-\\pi$', '$-\\pi/2$', '$0$', '$\\pi/2$', '$\\pi$'])
+ax.set_xlabel('$\\theta$', fontsize=15)
+ax.set_ylabel('$Potential Energy$', fontsize=15)
 flag_legend = True
 ims = []
 
@@ -81,20 +85,21 @@ for iter in tqdm(range(max_iter)):
     #im += ax.plot(theta_arr, potential_dd_p, color='C3', linestyle='dashed', label='dipole field through para')
     
     potential_non_time = potential_dd + potential_dd_p
-    im = ax.plot(theta_arr, potential_non_time, color='C5', linestyle='dashed', label='time independent energy')
+    im = ax.plot(theta_arr, potential_non_time, color='C1', linestyle='dashed', label='time independent energy')
     #
     potential_time = potential_ext + potential_ext_p
-    im += ax.plot(theta_arr, potential_time, color='C6', linestyle='dashed', label='time dependent energy')
+    im += ax.plot(theta_arr, potential_time, color='C2', linestyle='dashed', label='time dependent energy')
     
-    potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
-    im += ax.plot(theta_arr, potential_all, color='C4', label='sum of all energy')
-    im_line1 = ax.axvline(external_field_pole(), color='red')
-    im_line2 = ax.axvline(characteristic_pole(), color='blue')
+    potential_all = potential_ext + potential_dd + potential_ext_p
+    im += ax.plot(theta_arr, potential_all, color='C0', label='all energy')
+    #im_line1 = ax.axvline(external_field_pole(), color='red')
+    #im_line2 = ax.axvline(characteristic_pole(), color='blue')
     if flag_legend:
         ax.legend()
         flag_legend = False
     
-    ims.append(im+[im_line1]+[im_line2])
+    #ims.append(im+[im_line1]+[im_line2])
+    ims.append(im)
 
     time += d_time
     external_magnetic_field = np.cos(omega*time)
