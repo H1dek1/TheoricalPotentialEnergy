@@ -63,7 +63,7 @@ theta_arr = np.linspace(-np.pi, np.pi, 100)
 time = 0
 external_magnetic_field = np.cos(time)
 fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-ax.set_title('alpha={}, gamma={}'.format(alpha, gamma))
+ax.set_title('$\\alpha={}$, $\\gamma={}$'.format(alpha, gamma))
 ax.set_xticks(np.arange(-np.pi, np.pi+np.pi/2, np.pi/2))
 ax.set_xticklabels(['$-\\pi$', '$-\\pi/2$', '$0$', '$\\pi/2$', '$\\pi$'])
 ax.set_xlabel('$\\theta$', fontsize=15)
@@ -90,7 +90,7 @@ for iter in tqdm(range(max_iter)):
     potential_time = potential_ext + potential_ext_p
     im += ax.plot(theta_arr, potential_time, color='C2', linestyle='dashed', label='time dependent energy')
     
-    potential_all = potential_ext + potential_dd + potential_ext_p
+    potential_all = potential_ext + potential_dd + potential_ext_p + potential_dd_p
     im += ax.plot(theta_arr, potential_all, color='C0', label='all energy')
     #im_line1 = ax.axvline(external_field_pole(), color='red')
     #im_line2 = ax.axvline(characteristic_pole(), color='blue')
