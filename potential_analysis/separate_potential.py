@@ -17,7 +17,7 @@ sleep_iter = int(1 / d_time)
 
 alpha = 1.0e+0
 beta = 6.0e-4
-gamma = 1.0e-1
+gamma = 1.0e-0
 a_l = 0.3
 
 def all_energy(theta, ext_field):
